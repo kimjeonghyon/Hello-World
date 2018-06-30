@@ -1,4 +1,17 @@
-# Hello-World
-test
+# 버스 승객수 카운터 (Passenger Couter for Bus)
+## 목적
+버스 승객 탑승 승객수를 자동으로 카운트 하여 BMS시스템으로 전송
 
-This is my first github file to learn branch.
+## 구성품
+아두이노 소스 코드 - 승객 통과 count 로직
+아두이노 보드
+적외선센서
+4 Digit Led
+블루투스 통신 칩
+휴대용 배터리
+
+## 작동 방식
+적외선 거리 센서로 버스 탑승객 인식
+탑승객 카운트 정보를 블루투스로 전송
+탑승객 카운트를 LED 전광판에 표시
+
