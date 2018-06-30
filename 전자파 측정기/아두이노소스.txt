@@ -1,0 +1,110 @@
+#define NUMREADINGS 10 // raise this number to increase data smoothing
+
+int senseLimit = 10; // raise this number to decrease sensitivity (up to 1023 max)
+int probePin = 5;
+int val = 0;
+
+int readings[NUMREADINGS];                // the readings from the analog input
+int index = 0;                            // the index of the current reading
+int total = 0;                            // the running total
+int average = 0;                          // final average of the probe reading
+
+int updateTime = 50;
+
+byte seven_seg_digits[10][7] = { { 0,0,0,0,0,0,1 },  // = 0
+                                 { 1,0,0,1,1,1,1 },  // = 1
+                                { 0,0,1,0,0,1,0 },  // = 2
+                                { 0,0,0,0,1,1,0 },  // = 3
+                                 { 1,0,0,1,1,0,0 },  // = 4
+                                 { 0,1,0,0,1,0,0 },  // = 5
+                                 { 0,1,0,0,0,0,0 },  // = 6
+                                 { 0,0,0,1,1,1,1 },  // = 7
+                                 { 0,0,0,0,0,0,0 },  // = 8
+                                 { 0,0,0,1,1,0,0 }   // = 9
+ };
+
+void setup() {                
+  pinMode(2, OUTPUT);   
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  pinMode(5, OUTPUT);
+  pinMode(6, OUTPUT);
+  pinMode(7, OUTPUT);
+  pinMode(8, OUTPUT);
+  pinMode(9, OUTPUT);
+  writeDot(0);  // start with the "dot" off
+//  intro();
+   Serial.begin(9600); 
+
+
+}
+
+void writeDot(byte dot) {
+  digitalWrite(9, dot);
+}
+    
+void sevenSegWrite(byte digit) {
+  byte pin = 2;
+  for (byte segCount = 0; segCount < 7; ++segCount) {
+    digitalWrite(pin, seven_seg_digits[digit][segCount]);
+    ++pin;
+  }
+}
+
+void loop() {
+   
+   val = analogRead(probePin);  // take a reading from the probe
+
+  if(val >= 1){                // if the reading isn't zero, proceed
+    val = constrain(val, 1, senseLimit);  // turn any reading higher than the senseLimit value into the senseLimit value
+    //val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
+    val = map(val, 1, senseLimit, 1, 1023);  // remap the constrained value within a 1 to 1023 range
+    
+    total -= readings[index];               // subtract the last reading
+    readings[index] = val; // read from the sensor
+    total += readings[index];               // add the reading to the total
+    index = (index + 1);                    // advance to the next index
+
+    if (index >= NUMREADINGS)               // if we're at the end of the array...
+      index = 0;                            // ...wrap around to the beginning
+
+    average = total / NUMREADINGS;          // calculate the average
+
+
+    if (average > 950){
+        sevenSegWrite(0);
+    } else if (average > 850){
+        sevenSegWrite(1);
+    } else if (average > 750){
+         sevenSegWrite(2);
+    } else  if (average > 650){
+         sevenSegWrite(3);
+    } else if (average > 550){
+         sevenSegWrite(4);
+    } else if (average > 450){
+        sevenSegWrite(5);
+    } else if (average > 350){
+          sevenSegWrite(6);
+    } else if (average > 250){
+        sevenSegWrite(7);
+    } else if (average > 150){              
+         sevenSegWrite(8);   
+    } else if (average > 50){ 
+         sevenSegWrite(9); 
+    }
+    
+    Serial.println(average);
+    delay(updateTime);
+  }
+
+   
+}
+
+void intro() {
+   for (byte count = 10; count > 0; --count) {
+   delay(1000);
+   sevenSegWrite(count - 1); 
+  }
+  delay(100);
+}
+
